@@ -39,8 +39,56 @@ void OrderBook::insert_limit_order(Order order) {
                 }
                 
             }
+            //If there are asks have been fulfilled, remove it
+            if (orders_list.empty()) {
+                asks.erase(asks.begin());
+            }   
+        } 
+    }
+    else {// order.side == sell
+        //Match against existing bids (Buy orders) as long as seller crosses spread
+        while (order.qty > 0 && !bids.empty() && order.price <= bids.begin()->first) {
+            auto& best_bid_level = bids.begin()->second;
+            auto& orders_list = best_bid_level.orders;
             
+            while (order.qty > 0 && !orders_list.empty()){
+                auto& resting_order = orders_list.front();
+
+                uint32_t match_qty = std::min(order.qty, resting_order.qty);
+
+                order.qty -= match_qty;
+                resting_order.qty -= match_qty;
+                best_bid_level.total_volume -= match_qty;
+
+                std::cout <<"TRADE: Order " << order.id << " matched with order " << resting_order.id 
+                << " Qty: " << match_qty << " @ Price: " << resting_order.price << "\n";
+
+                if (resting_order.qty == 0) {
+                    order_map.erase(resting_order.id);
+                    orders_list.pop_front();
+                }
+            }
+            if (orders_list.empty())
+            {
+                bids.erase(bids.begin());
+            }
         }
-        
+    }
+
+    //If there is leftover quantity in the order.
+    if (order.qty) {
+        if (order.side == Side::Buy) {
+            auto& level = bids[order.price];
+            level.total_volume += order.qty;
+            level.orders.push_back(order);
+
+            //std::prev(level.orders.end()) creates an iterator pointing to the last order we pushed (the one we are working with)
+            order_map[order.id] = {Side::Buy, std::prev(level.orders.end())};
+        } else {
+            auto& level = asks[order.price];
+            level.total_volume += order.qty;
+            level.orders.push_back(order);
+            order_map[order.id] = {Side::Sell, std::prev(level.orders.end())};
+        }
     }
 }
