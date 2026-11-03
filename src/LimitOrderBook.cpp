@@ -146,5 +146,20 @@ void LimitOrderBook::cancel_order(OrderId id) {
     orders.erase(it);
     memory_pool.deallocate(order);
     std::cout << "Successfully cancelled order ID: " << id << std::endl;
-}
+};
 
+void LimitOrderBook::print_book() const {
+    std::cout << "\n -----LOB STATE-----\n" << std::endl;
+    std::cout << "Asks (selling orders):" << std::endl;
+    for (auto it = asks.rbegin(); it != asks.rend(); ++it) {
+        std::cout << " Price: " << std::setw(6) << it->first 
+                  << " | Volume: " << std::setw(6) << it->second.total_volume << std::endl;
+    }
+    std::cout << "-----------------------" << std::endl;
+    std::cout << "Bids (buying orders):" << std::endl;
+    for (const auto& [price, level] : bids) {
+        std::cout << " Price: " << std::setw(6) << price
+                  << " | Volume: " << std::setw(6) << level.total_volume << std::endl;
+    }
+    std::cout << "-----------------------" << std::endl;
+}
