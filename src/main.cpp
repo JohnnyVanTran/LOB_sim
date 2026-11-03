@@ -1,10 +1,70 @@
 #include <iostream>
-#include <Types.hpp>
-#include <MemoryPool.hpp>
+#include <chrono>
+#include "LimitOrderBook.hpp"
 
 int main() {
-    std::cout << "LOB simulator initialized successfully.\n";
+    std::cout <<"====Starting LOB-sim and benchmark====" << std::endl;
+    
+    {
+        //1. correctness verification
+        MemoryPool pool(1000);
+        LimitOrderBook book(pool);
 
-    return 0;
+        std::cout << "\n--- Phase 1: Seeding Resting Orders ---" << std::endl;
+        book.add_limit_order(1, Side::SELL, 101, 10, 1710000001);
+        book.add_limit_order(2, Side::SELL, 102, 20, 1710000002);
+        book.add_limit_order(3, Side::SELL, 103, 30, 1710000003);
+        book.add_limit_order(4, Side::BUY, 99, 15, 1710000004);
+        book.add_limit_order(5, Side::BUY, 98, 25, 1710000005);
+        book.add_limit_order(6, Side::BUY, 97, 35, 1710000006);
+        book.print_book();
 
+        std::cout << "--- Phase 2: Aggressive Buy Order (Crosses Spread) ---" << std::endl;
+        book.add_limit_order(7, Side::BUY, 102, 15, 1710000007);
+        book.print_book();
+
+        std::cout << "--- Phase 3: Order Cancellation ---" << std::endl;
+        book.cancel_order(4);
+        book.print_book();
+
+        std::cout << "--- Phase 4: Incoming Sell Order Matching ---" << std::endl;
+        book.add_limit_order(8, Side::SELL, 98, 20, 1710000008);
+        book.print_book();
+    }
+/*     //Performanse benchmark
+    std::cout << "\n=== Phase 5: High-Performance Throughput Benchmark ===" << std::endl;
+    
+    constexpr size_t kNumOrders = 500000; // 500k operations test
+    MemoryPool bench_pool(kNumOrders + 10);
+    LimitOrderBook bench_book(bench_pool);
+
+    auto start_time = std::chrono::high_resolution_clock::now();
+
+    // Stream a mix of resting orders, aggressive matching orders, and cancellations
+    for (OrderId i = 1; i <= kNumOrders; ++i) {
+        Side side = (i % 2 == 0) ? Side::BUY : Side::SELL;
+        Price price = 100 + (i % 20); // Prices fluctuate between 100 and 119
+        Quantity qty = 10;
+
+        // Alternate between adding orders and cancelling some previous ones
+        if (i > 100 && i % 5 == 0) {
+            bench_book.cancel_order(i - 50); // Cancel an older order
+        } else {
+            bench_book.add_limit_order(i, side, price, qty, 1710000000 + i);
+        }
+    }
+
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto duration_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time).count();
+    auto duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+
+    double seconds = duration_ms / 1000.0;
+    double ops_per_sec = kNumOrders / seconds;
+
+    std::cout << "Processed " << kNumOrders << " operations in " << duration_ms << " ms (" 
+              << duration_ns / kNumOrders << " ns per operation)." << std::endl;
+    std::cout << "Throughput: " << static_cast<long long>(ops_per_sec) << " orders/sec." << std::endl;
+    std::cout << "=== Benchmark Completed Successfully ===" << std::endl;
+
+    return 0; */
 }

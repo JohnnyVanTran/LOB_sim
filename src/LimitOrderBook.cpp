@@ -9,7 +9,7 @@ void LimitOrderBook::add_limit_order(OrderId id, Side side, Price price, Quantit
         while (remaining_qty > 0 && !asks.empty()) {
             auto best_ask = asks.begin();
             Price best_price = best_ask->first;
-            PriceLevel ask_level = best_ask->second;
+            PriceLevel& ask_level = best_ask->second;
 
             //Incoming price is to low to buy
             if (price < best_price) { break; }
@@ -67,7 +67,7 @@ void LimitOrderBook::add_limit_order(OrderId id, Side side, Price price, Quantit
         while (remaining_qty > 0 && !bids.empty()) {
             auto best_bid = bids.begin();
             Price best_price = best_bid->first;
-            PriceLevel bid_level = best_bid->second;
+            PriceLevel& bid_level = best_bid->second;
 
             if (price > best_price) { break; } //Sellprice is to high for current bids
 
@@ -162,4 +162,4 @@ void LimitOrderBook::print_book() const {
                   << " | Volume: " << std::setw(6) << level.total_volume << std::endl;
     }
     std::cout << "-----------------------" << std::endl;
-}
+};
