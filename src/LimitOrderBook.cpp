@@ -117,6 +117,7 @@ void LimitOrderBook::add_limit_order(OrderId id, Side side, Price price, Quantit
 }
 
 void LimitOrderBook::cancel_order(OrderId id) {
+    //Find order in orders-map
     auto it = orders.find(id);
     if (it == orders.end()) {
         std::cout << "[Cancel] Order ID: " << id << " not found " << std::endl;
@@ -145,7 +146,7 @@ void LimitOrderBook::cancel_order(OrderId id) {
     }
     orders.erase(it);
     memory_pool.deallocate(order);
-    std::cout << "Successfully cancelled order ID: " << id << std::endl;
+    //std::cout << "Successfully cancelled order ID: " << id << std::endl;
 };
 
 void LimitOrderBook::print_book() const {
