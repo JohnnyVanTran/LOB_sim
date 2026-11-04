@@ -8,6 +8,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_executable(lob_sim
     src/main.cpp
     src/LimitOrderBook.cpp
+    src/TickStreamer.cpp
 )
 
 target_include_directories(lob_sim PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/headers)
